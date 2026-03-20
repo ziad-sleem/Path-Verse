@@ -35,7 +35,7 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const MyText(text: 'Search')),
+      appBar: AppBar(title: const AppText(text: 'Search')),
       body: Column(
         children: [
           // Search input

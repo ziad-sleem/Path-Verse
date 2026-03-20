@@ -2,38 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_media_app_using_firebase/core/widgets/app_text.dart';
 import 'package:social_media_app_using_firebase/features/home/presentation/widgets/my_home_app_bar.dart';
-import 'package:social_media_app_using_firebase/features/home/presentation/widgets/post_widget.dart';
-import 'package:social_media_app_using_firebase/features/post/presentation/cubit/post_cubit.dart';
+import 'package:social_media_app_using_firebase/features/home/presentation/widgets/post_widgets/post_widget.dart';
+import 'package:social_media_app_using_firebase/features/create_post/presentation/cubit/post_cubit.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends StatelessWidget {
   const HomePage({super.key});
-
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  // post cubit
-  late final postCubit = context.read<PostCubit>();
-
-  // on restart
-  @override
-  void initState() {
-    super.initState();
-    
-    // fetch all the posts
-    fetchAllPosts();
-  }
-
-  void fetchAllPosts() {
-    postCubit.fetchAllPosts();
-  }
-
-  // delete post
-  void deletePost(String postId) {
-    postCubit.deletePost(postId: postId);
-    fetchAllPosts();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +23,7 @@ class _HomePageState extends State<HomePage> {
 
               if (allPosts.isEmpty) {
                 return Center(
-                  child: MyText(
+                  child: AppText(
                     text:
                         '📍No posts availabel, follow more people to see more posts📍',
                   ),
@@ -72,7 +45,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               );
             } else if (state is PostError) {
-              return Center(child: MyText(text: state.errorMessage));
+              return Center(child: AppText(text: state.errorMessage));
             } else {
               return SizedBox.shrink();
             }

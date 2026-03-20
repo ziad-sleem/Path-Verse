@@ -3,14 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_media_app_using_firebase/config/cloudinary/image_picker_service.dart';
 import 'package:social_media_app_using_firebase/core/widgets/app_button.dart';
 import 'package:social_media_app_using_firebase/core/widgets/app_text.dart';
-import 'package:social_media_app_using_firebase/features/auth/peresnetation/cubits/cubit/auth_cubit.dart';
-import 'package:social_media_app_using_firebase/features/post/presentation/cubit/post_cubit.dart';
-import 'package:social_media_app_using_firebase/features/post/domain/entities/post.dart';
+import 'package:social_media_app_using_firebase/features/auth/peresnetation/cubits/auth_cubit/auth_cubit.dart';
+import 'package:social_media_app_using_firebase/features/create_post/presentation/cubit/post_cubit.dart';
+import 'package:social_media_app_using_firebase/features/home/presentation/cubit/home_cubit.dart';
+import 'package:social_media_app_using_firebase/features/home/presentation/cubit/home_event.dart';
 import 'package:social_media_app_using_firebase/features/profile/presentation/cubits/cubit/profile_cubit.dart';
 import 'package:social_media_app_using_firebase/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:social_media_app_using_firebase/features/profile/presentation/pages/follower_page.dart';
 import 'package:social_media_app_using_firebase/features/profile/presentation/pages/following_page.dart';
-import 'package:social_media_app_using_firebase/config/DI/injection.dart';
 import 'package:social_media_app_using_firebase/features/profile/presentation/widgets/profile_post_widget.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -22,83 +22,43 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  // Create a local ProfileCubit for this page only
-  late final ProfileCubit _localProfileCubit;
-  late final authCubit = context.read<AuthCubit>();
   final ImagePickerService _imagePickerService = ImagePickerService();
-
-  bool isFollowing = false;
-  List<Post> _userPosts = [];
-  bool _isLoadingPosts = false;
 
   @override
   void initState() {
     super.initState();
-    _localProfileCubit = getIt<ProfileCubit>();
 
-    // load user profile data using local cubit
-    _localProfileCubit.fetchUserProfile(widget.uid);
-    _fetchUserPosts();
-    checkFollowStatus();
+    // Fetch user-specific data whenever this page is initialized
+    _fetchProfileData();
+  }
+
+  void _fetchProfileData() {
+    context.read<ProfileCubit>().fetchUserProfile(widget.uid);
+    context.read<HomeCubit>().doEvent(
+      FetchAllPostByUserIdEvent(userId: widget.uid),
+    );
   }
 
   @override
-  void dispose() {
-    _localProfileCubit.close();
-    super.dispose();
-  }
-
-  Future<void> _fetchUserPosts() async {
-    setState(() => _isLoadingPosts = true);
-    try {
-      final posts = await context
-          .read<PostCubit>()
-          .postRepo
-          .fectchAllPostsByUserId(widget.uid);
-      if (mounted) {
-        setState(() {
-          _userPosts = posts;
-          _isLoadingPosts = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoadingPosts = false);
-      }
+  void didUpdateWidget(ProfilePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.uid != widget.uid) {
+      _fetchProfileData();
     }
   }
 
-  Future<void> checkFollowStatus() async {
-    final followers = await _localProfileCubit.getFollowers(widget.uid);
-    if (mounted) {
-      setState(() {
-        isFollowing = followers.contains(authCubit.currentUser!.uid);
-      });
-    }
-  }
-
-  Future<void> toggleFollow() async {
-    final currentUserId = authCubit.currentUser!.uid;
+  Future<void> toggleFollow(bool isFollowing) async {
+    final currentUserId = context.read<AuthCubit>().currentUser!.uid;
     final targetUserId = widget.uid;
 
-    // optimistically update UI
-    setState(() {
-      isFollowing = !isFollowing;
-    });
-
     try {
-      final bool wasFollowing =
-          !isFollowing; // Since we already flipped it in setState
-      await _localProfileCubit.toggleFollow(
+      await context.read<ProfileCubit>().toggleFollow(
         currentUserId,
         targetUserId,
-        wasFollowing,
+        isFollowing,
       );
     } catch (e) {
-      // revert if failed
-      setState(() {
-        isFollowing = !isFollowing;
-      });
+      // Error is handled in cubit and emitted as ProfileError
     }
   }
 
@@ -106,19 +66,19 @@ class _ProfilePageState extends State<ProfilePage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const MyText(text: 'Logout'),
-        content: const MyText(text: 'Are you sure you want to logout?'),
+        title: const AppText(text: 'Logout'),
+        content: const AppText(text: 'Are you sure you want to logout?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const MyText(text: 'Cancel'),
+            child: const AppText(text: 'Cancel'),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              authCubit.logout();
+              context.read<AuthCubit>().logout();
             },
-            child: MyText(text: 'Logout', color: Colors.red),
+            child: AppText(text: 'Logout', color: Colors.red),
           ),
         ],
       ),
@@ -129,7 +89,6 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return BlocBuilder<ProfileCubit, ProfileState>(
-      bloc: _localProfileCubit, // Use local cubit instead of global
       builder: (context, state) {
         if (state is ProfileLoading) {
           return Scaffold(
@@ -145,11 +104,11 @@ class _ProfilePageState extends State<ProfilePage> {
 
           return Scaffold(
             appBar: AppBar(
-              title: MyText(text: user.username),
+              title: AppText(text: user.username),
               foregroundColor: Theme.of(context).colorScheme.primary,
               actions: [
                 // Show logout button only on own profile
-                if (authCubit.currentUser!.uid == widget.uid)
+                if (context.read<AuthCubit>().currentUser!.uid == widget.uid)
                   IconButton(
                     icon: const Icon(Icons.logout),
                     tooltip: 'Logout',
@@ -179,7 +138,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             children: [
                               SizedBox(width: size.width * 0.08),
 
-                              MyText(text: userName, fontSize: 20),
+                              AppText(text: userName, fontSize: 20),
                             ],
                           ),
                           Row(
@@ -197,8 +156,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ),
                                 child: Column(
                                   children: [
-                                    const MyText(text: "follower"),
-                                    MyText(text: "$follower"),
+                                    const AppText(text: "follower"),
+                                    AppText(text: "$follower"),
                                   ],
                                 ),
                               ),
@@ -215,8 +174,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ),
                                 child: Column(
                                   children: [
-                                    const MyText(text: "following"),
-                                    MyText(text: "$following"),
+                                    const AppText(text: "following"),
+                                    AppText(text: "$following"),
                                   ],
                                 ),
                               ),
@@ -231,7 +190,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // bio
-                      MyText(text: bio?.toString() ?? "No Bio Yet..."),
+                      AppText(text: bio?.toString() ?? "No Bio Yet..."),
                       SizedBox(height: size.height * 0.03),
                       Row(
                         children: [
@@ -249,18 +208,17 @@ class _ProfilePageState extends State<ProfilePage> {
                                               EditProfilePage(user: user),
                                         ),
                                       );
-                                      // Re-fetch profile after returning from edit page
-                                      _localProfileCubit.fetchUserProfile(
-                                        widget.uid,
-                                      );
                                     },
                                   ),
                                 )
                               : SizedBox(
                                   width: size.width * 0.45,
                                   child: AppButton(
-                                    onTap: toggleFollow,
-                                    text: isFollowing ? "Unfollow" : "Follow",
+                                    onTap: () =>
+                                        toggleFollow(state.isFollowing),
+                                    text: state.isFollowing
+                                        ? "Unfollow"
+                                        : "Follow",
                                   ),
                                 ),
                           SizedBox(width: size.width * 0.01),
@@ -277,13 +235,15 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
 
                       SizedBox(height: size.height * 0.05),
-                      // User posts grid - using local state instead of global PostCubit
-                      _isLoadingPosts
-                          ? const Center(
-                              child: CircularProgressIndicator.adaptive(),
-                            )
-                          : GridView.builder(
-                              itemCount: _userPosts.length,
+
+                      BlocBuilder<PostCubit, PostState>(
+                        builder: (context, state) {
+                          if (state is PostLoading) {
+                            return const Center();
+                          } else if (state is PostLoaded) {
+                            final userPosts = state.posts;
+                            return GridView.builder(
+                              itemCount: userPosts.length,
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               gridDelegate:
@@ -294,10 +254,19 @@ class _ProfilePageState extends State<ProfilePage> {
                                   ),
                               itemBuilder: (context, index) {
                                 return ProfilePostWidget(
-                                  post: _userPosts[index],
+                                  post: userPosts[index],
                                 );
                               },
-                            ),
+                            );
+                          } else if (state is PostError) {
+                            return Center(
+                              child: AppText(text: state.errorMessage),
+                            );
+                          } else {
+                            return SizedBox.shrink();
+                          }
+                        },
+                      ),
                     ],
                   ),
                 ],
@@ -306,11 +275,11 @@ class _ProfilePageState extends State<ProfilePage> {
           );
         } else if (state is ProfileError) {
           return Scaffold(
-            body: Center(child: MyText(text: state.errorMessage)),
+            body: Center(child: AppText(text: state.errorMessage)),
           );
         } else {
           return const Scaffold(
-            body: Center(child: MyText(text: "NO PROFILE FOUND...")),
+            body: Center(child: AppText(text: "NO PROFILE FOUND...")),
           );
         }
       },

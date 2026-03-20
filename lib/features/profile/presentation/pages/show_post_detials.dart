@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:social_media_app_using_firebase/features/home/presentation/widgets/post_widget.dart';
-import 'package:social_media_app_using_firebase/features/post/domain/entities/post.dart';
+import 'package:social_media_app_using_firebase/features/home/presentation/widgets/post_widgets/post_widget.dart';
+import 'package:social_media_app_using_firebase/features/create_post/domain/entities/post.dart';
 
 class ShowPostDetials extends StatelessWidget {
   final Post post;

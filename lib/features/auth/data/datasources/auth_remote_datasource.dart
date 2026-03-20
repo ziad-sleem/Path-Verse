@@ -13,11 +13,11 @@ abstract class AuthRemoteDatasource {
     String password,
     String phoneNumber,
   );
+  Future<void> resetPassword(String email);
   Future<void> logout();
   Future<AppUser?> getCurrentUser();
   Future<AppUser?> getUserData(String uid);
   Future<AppUser?> signinWithGoogle();
-  Future<void> resetPassword(String email);
   Future<void> sendOtp({
     required String phone,
     required Function(String verificationId) codeSent,

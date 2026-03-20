@@ -42,7 +42,7 @@ class AppButton extends StatelessWidget {
                     color: textCol,
                   ),
                 )
-              : MyText(
+              : AppText(
                   text: text,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

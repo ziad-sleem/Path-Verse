@@ -46,9 +46,6 @@ class FirebaseProfileRepo implements ProfileRepo {
       if (profileImage != null) data['profileImage'] = profileImage;
       if (phoneNumber != null) data['phoneNumber'] = phoneNumber;
 
-      // nothing to update
-      if (data.isEmpty) return;
-
       await firebaseFirestore.collection('usersProfile').doc(uid).update(data);
     } catch (e) {
       throw Exception('update user failed: ${e.toString()}');
@@ -167,4 +164,5 @@ class FirebaseProfileRepo implements ProfileRepo {
       throw Exception('remove follow failed: ${e.toString()}');
     }
   }
+  
 }

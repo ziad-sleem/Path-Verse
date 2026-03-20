@@ -88,7 +88,6 @@ class AppValidators {
   }
 
   static String? _validatePhone(String value) {
-    // Correct format: +[country code][number]
     final regex = RegExp(r'^\+\d{10,15}$');
 
     if (!regex.hasMatch(value)) {

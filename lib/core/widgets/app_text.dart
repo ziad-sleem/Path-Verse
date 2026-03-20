@@ -1,12 +1,12 @@
 import 'package:flutter/widgets.dart';
 
-class MyText extends StatelessWidget {
+class AppText extends StatelessWidget {
   final String text;
   final double? fontSize;
   final FontWeight? fontWeight;
   final Color? color;
 
-  const MyText({
+  const AppText({
     super.key,
     required this.text,
     this.fontSize,

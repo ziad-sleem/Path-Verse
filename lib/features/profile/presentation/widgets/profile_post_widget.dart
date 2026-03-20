@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:social_media_app_using_firebase/features/post/domain/entities/post.dart';
+import 'package:social_media_app_using_firebase/features/create_post/domain/entities/post.dart';
 import 'package:social_media_app_using_firebase/features/profile/presentation/pages/show_post_detials.dart';
 
 class ProfilePostWidget extends StatelessWidget {

@@ -41,13 +41,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: MyText(text: 'Select Image Source'),
+          title: AppText(text: 'Select Image Source'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
                 leading: Icon(Icons.photo_library),
-                title: MyText(text: 'Gallery'),
+                title: AppText(text: 'Gallery'),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImageFromGallery();
@@ -55,7 +55,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ),
               ListTile(
                 leading: Icon(Icons.camera_alt),
-                title: MyText(text: 'Camera'),
+                title: AppText(text: 'Camera'),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImageFromCamera();
@@ -87,7 +87,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: MyText(text: 'Failed to pick image: $e'),
+          content: AppText(text: 'Failed to pick image: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -113,7 +113,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: MyText(text: 'Failed to pick image: $e'),
+          content: AppText(text: 'Failed to pick image: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -138,6 +138,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       // Only update profile image if a new image was selected
       profileImage: _selectedImageBase64,
     );
+
   }
 
   @override
@@ -151,12 +152,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
             body: Column(
               children: [
                 CircularProgressIndicator.adaptive(),
-                MyText(text: "Loading..."),
+                AppText(text: "Loading..."),
               ],
             ),
           );
         } else if (state is ProfileError) {
-          return MyText(text: "NO USER FOUND");
+          return AppText(text: "NO USER FOUND");
         } else {
           return buildEditPage(size: size);
         }
@@ -172,7 +173,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget buildEditPage({double uploadProgress = 0.0, required Size size}) {
     return Scaffold(
       appBar: AppBar(
-        title: MyText(text: "Edit Profile"),
+        title: AppText(text: "Edit Profile"),
 
         foregroundColor: Theme.of(context).colorScheme.primary,
       ),
@@ -268,7 +269,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               SizedBox(height: size.height * 0.04),
 
               // edit user name
-              MyText(
+              AppText(
                 text: 'Edit Name',
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -282,7 +283,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               SizedBox(height: size.height * 0.05),
 
               // edit Phone
-              MyText(
+              AppText(
                 text: 'Edit Phone Number',
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -296,7 +297,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               SizedBox(height: size.height * 0.05),
 
               // edit bio
-              MyText(
+              AppText(
                 text: 'Edit Bio',
                 fontSize: 16,
                 fontWeight: FontWeight.bold,

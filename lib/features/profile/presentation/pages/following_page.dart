@@ -12,7 +12,7 @@ class FollowingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const MyText(text: "Following"),
+        title: const AppText(text: "Following"),
         foregroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: FutureBuilder<List<String>>(
@@ -30,13 +30,13 @@ class FollowingPage extends StatelessWidget {
             );
           } else if (snapshot.hasData && snapshot.data!.isEmpty) {
             return const Center(
-              child: MyText(
+              child: AppText(
                 text: "Not following anyone yet",
                 color: Colors.grey,
               ),
             );
           } else if (snapshot.hasError) {
-            return Center(child: MyText(text: "Error: ${snapshot.error}"));
+            return Center(child: AppText(text: "Error: ${snapshot.error}"));
           }
           return const SizedBox.shrink();
         },

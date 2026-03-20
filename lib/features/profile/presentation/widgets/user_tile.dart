@@ -18,8 +18,8 @@ class UserTile extends StatelessWidget {
         if (snapshot.hasData) {
           final user = snapshot.data!;
           return ListTile(
-            title: MyText(text: user.username, fontWeight: FontWeight.bold),
-            subtitle: MyText(
+            title: AppText(text: user.username, fontWeight: FontWeight.bold),
+            subtitle: AppText(
               text: user.email,
               color: Theme.of(context).colorScheme.primary,
             ),

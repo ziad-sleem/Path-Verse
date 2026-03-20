@@ -1,7 +1,9 @@
+
+import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:social_media_app_using_firebase/features/auth/domain/repos/auth_repo.dart';
-import 'package:social_media_app_using_firebase/features/post/domain/repo/post_repo.dart';
+import 'package:social_media_app_using_firebase/features/create_post/domain/repo/post_repo.dart';
 import 'package:social_media_app_using_firebase/features/profile/domain/models/profile_user.dart';
 import 'package:social_media_app_using_firebase/features/profile/domain/repos/profile_repo.dart';
 
@@ -26,7 +28,13 @@ class ProfileCubit extends Cubit<ProfileState> {
 
       final user = await profileRepo.fetchUserData(uid: uid);
 
-      emit(ProfileLoaded(profileUser: user));
+      // check if current user is following this user
+      final followers = await profileRepo.fetchFollowers(uid: uid);
+      final currentUser = await authRepo.getCurrentUser();
+      final isFollowing =
+          followers?.followers.contains(currentUser?.uid) ?? false;
+
+      emit(ProfileLoaded(profileUser: user, isFollowing: isFollowing));
     } catch (e) {
       emit(ProfileError(errorMessage: e.toString()));
     }
@@ -60,7 +68,15 @@ class ProfileCubit extends Cubit<ProfileState> {
       // re-fetch updated user from Firestore
       final updatedUser = await profileRepo.fetchUserData(uid: uid);
 
-      emit(ProfileLoaded(profileUser: updatedUser));
+
+      // Keep follow status or re-check
+      final followers = await profileRepo.fetchFollowers(uid: uid);
+      final currentUser = await authRepo.getCurrentUser();
+      final isFollowing =
+          followers?.followers.contains(currentUser?.uid) ?? false;
+
+      emit(ProfileLoaded(profileUser: updatedUser, isFollowing: isFollowing));
+
     } catch (e) {
       emit(ProfileError(errorMessage: (e.toString())));
     }
@@ -72,6 +88,22 @@ class ProfileCubit extends Cubit<ProfileState> {
     String targetUserId,
     bool isCurrentlyFollowing,
   ) async {
+    // Optimistic update
+    if (state is ProfileLoaded) {
+      final currentLoadedState = state as ProfileLoaded;
+      final updatedUser = currentLoadedState.profileUser.copyWith(
+        followersCount: isCurrentlyFollowing
+            ? (currentLoadedState.profileUser.followersCount ?? 0) - 1
+            : (currentLoadedState.profileUser.followersCount ?? 0) + 1,
+      );
+      emit(
+        ProfileLoaded(
+          profileUser: updatedUser,
+          isFollowing: !isCurrentlyFollowing,
+        ),
+      );
+    }
+
     try {
       if (isCurrentlyFollowing) {
         // Currently following, so unfollow
@@ -83,12 +115,28 @@ class ProfileCubit extends Cubit<ProfileState> {
         // Not following, so follow
         await profileRepo.follow(uid: targetUserId, followHow: currentUserId);
       }
-      // Refresh the target user's profile after toggle
-      await fetchUserProfile(targetUserId);
+      // Refresh the target user's profile after toggle without showing loading
+      await _fetchUserProfileData(targetUserId);
     } catch (e) {
       // If error occurs, refresh to ensure UI is in sync
       await fetchUserProfile(targetUserId);
       emit(ProfileError(errorMessage: (e.toString())));
+    }
+  }
+
+  // Helper method to fetch and emit updated user data without ProfileLoading
+  Future<void> _fetchUserProfileData(String uid) async {
+    try {
+      final user = await profileRepo.fetchUserData(uid: uid);
+      final followers = await profileRepo.fetchFollowers(uid: uid);
+      final currentUser = await authRepo.getCurrentUser();
+      final isFollowing =
+          followers?.followers.contains(currentUser?.uid) ?? false;
+
+      emit(ProfileLoaded(profileUser: user, isFollowing: isFollowing));
+    } catch (e) {
+      // Don't emit error here to avoid breaking optimistic UI if re-fetch fails
+      // but toggle succeeded. Logging could be added.
     }
   }
 

@@ -31,12 +31,16 @@ import '../../features/auth/domain/usecases/send_otp_usecase.dart' as _i663;
 import '../../features/auth/domain/usecases/signin_with_google_usecase.dart'
     as _i780;
 import '../../features/auth/domain/usecases/verify_otp_usecase.dart' as _i503;
-import '../../features/auth/peresnetation/cubits/cubit/auth_cubit.dart'
+import '../../features/auth/peresnetation/cubits/auth_cubit/auth_cubit.dart'
     as _i774;
-import '../../features/auth/peresnetation/otp/cubit/otp_cubit.dart' as _i785;
-import '../../features/post/data/firebase_post_repo.dart' as _i889;
-import '../../features/post/domain/repo/post_repo.dart' as _i801;
-import '../../features/post/presentation/cubit/post_cubit.dart' as _i1054;
+import '../../features/auth/peresnetation/cubits/otp_cubit/cubit/otp_cubit.dart'
+    as _i583;
+import '../../features/create_post/data/firebase_post_repo.dart' as _i624;
+import '../../features/create_post/domain/repo/post_repo.dart' as _i114;
+import '../../features/create_post/presentation/cubit/post_cubit.dart' as _i845;
+import '../../features/home/data/firebase_home_repo.dart' as _i58;
+import '../../features/home/domain/repos/home_repo.dart' as _i130;
+import '../../features/home/presentation/cubit/home_cubit.dart' as _i9;
 import '../../features/profile/data/firebase_profile_repo.dart' as _i1029;
 import '../../features/profile/domain/repos/profile_repo.dart' as _i1007;
 import '../../features/profile/presentation/cubits/cubit/profile_cubit.dart'
@@ -84,24 +88,18 @@ extension GetItInjectableX on _i174.GetIt {
         authRemoteDataSource: gh<_i161.AuthRemoteDatasource>(),
       ),
     );
-    gh.lazySingleton<_i801.PostRepo>(
-      () => _i889.FirebasePostRepo(
+    gh.factory<_i130.HomeRepo>(
+      () => _i58.FirebaseHomeRepo(
         firebaseFirestore: gh<_i974.FirebaseFirestore>(),
         profileRepo: gh<_i1007.ProfileRepo>(),
         authRepo: gh<_i877.AuthRepo>(),
       ),
     );
-    gh.factory<_i1054.PostCubit>(
-      () => _i1054.PostCubit(
-        postRepo: gh<_i801.PostRepo>(),
-        cloudinaryService: gh<_i816.CloudinaryService>(),
-      ),
-    );
-    gh.factory<_i469.ProfileCubit>(
-      () => _i469.ProfileCubit(
-        authRepo: gh<_i877.AuthRepo>(),
-        postRepo: gh<_i801.PostRepo>(),
+    gh.lazySingleton<_i114.PostRepo>(
+      () => _i624.FirebasePostRepo(
+        firebaseFirestore: gh<_i974.FirebaseFirestore>(),
         profileRepo: gh<_i1007.ProfileRepo>(),
+        authRepo: gh<_i877.AuthRepo>(),
       ),
     );
     gh.lazySingleton<_i17.GetCurrentUserUsecase>(
@@ -131,8 +129,25 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i503.VerifyOtpUsecase>(
       () => _i503.VerifyOtpUsecase(authRepo: gh<_i877.AuthRepo>()),
     );
-    gh.factory<_i785.OtpCubit>(
-      () => _i785.OtpCubit(
+    gh.factory<_i845.PostCubit>(
+      () => _i845.PostCubit(
+        postRepo: gh<_i114.PostRepo>(),
+        cloudinaryService: gh<_i816.CloudinaryService>(),
+        homeRepo: gh<_i130.HomeRepo>(),
+      ),
+    );
+    gh.factory<_i469.ProfileCubit>(
+      () => _i469.ProfileCubit(
+        authRepo: gh<_i877.AuthRepo>(),
+        postRepo: gh<_i114.PostRepo>(),
+        profileRepo: gh<_i1007.ProfileRepo>(),
+      ),
+    );
+    gh.factory<_i9.HomeCubit>(
+      () => _i9.HomeCubit(homeRepo: gh<_i130.HomeRepo>()),
+    );
+    gh.factory<_i583.OtpCubit>(
+      () => _i583.OtpCubit(
         gh<_i663.SendOtpUsecase>(),
         gh<_i503.VerifyOtpUsecase>(),
       ),
