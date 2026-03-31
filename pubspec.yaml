@@ -27,6 +27,11 @@ dependencies:
   http: ^1.6.0
   pinput: ^6.0.2
   flutter_native_splash: ^2.4.7
+  media_kit_video: ^2.0.1
+  media_kit: ^1.2.6
+  media_kit_libs_video: ^1.0.7
+  cloudinary_url_gen: ^1.8.0
+  dio: ^5.9.2
 
 dev_dependencies:
   flutter_launcher_icons: ^0.14.4

@@ -32,7 +32,7 @@ class _UploadPostPageState extends State<UploadPostPage> {
 
   // current user
   AppUser? currentUser;
- late ProfileUser userProfile;
+  late ProfileUser userProfile;
   bool _isUploadingPost = false;
 
   @override
@@ -46,7 +46,7 @@ class _UploadPostPageState extends State<UploadPostPage> {
     final authCubit = context.read<AuthCubit>();
     currentUser = authCubit.currentUser;
     final profileCubit = context.read<ProfileCubit>();
-      
+
     final user = await profileCubit.getUserProfile(currentUser!.uid);
     userProfile = user!;
   }
@@ -54,8 +54,9 @@ class _UploadPostPageState extends State<UploadPostPage> {
   Future<void> pickImage() async {
     final XFile? pickedImage = await imagePicker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 50, // Compress for Firestore size
-      maxWidth: 1080, // Standard HD width
+      imageQuality: 50,
+      maxWidth: 1080, 
+      maxHeight: 1080
     );
 
     if (pickedImage != null && mounted) {
@@ -119,6 +120,7 @@ class _UploadPostPageState extends State<UploadPostPage> {
             _isUploadingPost = true;
           });
         } else if (state is PostLoaded) {
+          Navigator.pop(context);
           if (_isUploadingPost) {
             setState(() {
               _isUploadingPost = false;
@@ -225,7 +227,7 @@ class _UploadPostPageState extends State<UploadPostPage> {
 
               const SizedBox(width: 16),
               // Caption field
-              Expanded(child: CaptionTextField(textController: textController)),
+              Expanded(child: CaptionTextField(textController: textController, hintText: "Write a Caption...",)),
             ],
           ),
           const Divider(),

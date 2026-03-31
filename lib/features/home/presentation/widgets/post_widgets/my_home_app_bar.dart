@@ -11,7 +11,7 @@ class MyHomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       title: AppText(
-        text: 'Public Path',
+        text: 'NovaLeaf',
         fontWeight: FontWeight.bold,
         fontSize: 30,
       ),

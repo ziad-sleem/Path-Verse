@@ -5,6 +5,7 @@ class AppText extends StatelessWidget {
   final double? fontSize;
   final FontWeight? fontWeight;
   final Color? color;
+  final TextAlign? textAlign;
 
   const AppText({
     super.key,
@@ -12,12 +13,14 @@ class AppText extends StatelessWidget {
     this.fontSize,
     this.fontWeight,
     this.color,
+    this.textAlign,
   });
 
   @override
   Widget build(BuildContext context) {
     return Text(
       text,
+      textAlign: textAlign,
       style: TextStyle(
         fontFamily: 'InstagramSans',
         fontSize: fontSize,

@@ -9,6 +9,9 @@ class CloudinaryService {
   final String cloudName = "dd15ci6zb";
   final String uploadPreset = "ml_default";
 
+
+
+  /// uploade image
   Future<String?> uploadImage(File imageFile) async {
     final url = Uri.parse(
       "https://api.cloudinary.com/v1_1/$cloudName/image/upload",
@@ -36,6 +39,39 @@ class CloudinaryService {
       return null;
     } catch (e) {
       print("Cloudinary Error during upload: $e");
+      return null;
+    }
+
+  }
+
+    /// Upload a video to Cloudinary
+  Future<String?> uploadVideo(File videoFile) async {
+    final url = Uri.parse(
+      "https://api.cloudinary.com/v1_1/$cloudName/video/upload",
+    );
+
+    try {
+      final request = http.MultipartRequest("POST", url)
+        ..fields['upload_preset'] = uploadPreset
+        ..files.add(await http.MultipartFile.fromPath('file', videoFile.path));
+
+      final response = await request.send();
+      final responseData = await response.stream.toBytes();
+      final responseString = utf8.decode(responseData);
+
+      if (response.statusCode == 200) {
+        final jsonMap = jsonDecode(responseString);
+        return jsonMap['secure_url']; // Use this URL in BetterPlayer
+      } else {
+        print("Cloudinary Upload Failed (video): ${response.statusCode}");
+        print("Response Body: $responseString");
+        return null;
+      }
+    } on SocketException catch (e) {
+      print("Network Error (Check your internet/DNS): $e");
+      return null;
+    } catch (e) {
+      print("Cloudinary Error (video upload): $e");
       return null;
     }
   }

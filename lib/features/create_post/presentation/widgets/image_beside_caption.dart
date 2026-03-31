@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/widgets.dart';
-
 class ImageBesideCaption extends StatelessWidget {
   final File imagePickedFile;
   const ImageBesideCaption( {super.key, required this.imagePickedFile});

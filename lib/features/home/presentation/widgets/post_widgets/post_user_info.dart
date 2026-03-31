@@ -2,11 +2,15 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:social_media_app_using_firebase/config/DI/injection.dart';
 import 'package:social_media_app_using_firebase/core/widgets/app_text.dart';
 import 'package:social_media_app_using_firebase/features/auth/peresnetation/cubits/auth_cubit/auth_cubit.dart';
 import 'package:social_media_app_using_firebase/features/create_post/domain/entities/post.dart';
+import 'package:social_media_app_using_firebase/features/home/presentation/cubit/home_cubit.dart';
+import 'package:social_media_app_using_firebase/features/home/presentation/cubit/home_event.dart';
 import 'package:social_media_app_using_firebase/features/profile/domain/models/profile_user.dart';
 import 'package:social_media_app_using_firebase/features/profile/presentation/cubits/cubit/profile_cubit.dart';
+import 'package:social_media_app_using_firebase/features/profile/presentation/pages/other_user_profile_page.dart';
 import 'package:social_media_app_using_firebase/features/profile/presentation/pages/profile_page.dart';
 
 class PostUserInfo extends StatelessWidget {
@@ -40,7 +44,18 @@ class PostUserInfo extends StatelessWidget {
                 : Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ProfilePage(uid: post.userId),
+                      builder: (context) => MultiBlocProvider(
+                        providers: [
+                          BlocProvider(
+                            create: (context) => getIt<ProfileCubit>()..fetchUserProfile(post.userId),
+                          ),
+                          BlocProvider(
+                            create: (context) => getIt<HomeCubit>()
+                              ..doEvent(FetchAllPostByUserIdEvent(userId: post.userId)),
+                          ),
+                        ],
+                        child: OtherUserProfilePage(uid: post.userId),
+                      ),
                     ),
                   );
           }

@@ -8,8 +8,6 @@ import 'package:social_media_app_using_firebase/features/profile/domain/repos/pr
 @LazySingleton(as: PostRepo)
 class FirebasePostRepo implements PostRepo {
   final FirebaseFirestore firebaseFirestore;
-
-  // Use interfaces instead of concrete classes for better decoupling
   final ProfileRepo profileRepo;
   final AuthRepo authRepo;
 

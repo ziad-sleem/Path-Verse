@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:injectable/injectable.dart';
 import 'package:social_media_app_using_firebase/features/auth/domain/repos/auth_repo.dart';
@@ -6,12 +7,9 @@ import 'package:social_media_app_using_firebase/features/create_post/domain/enti
 import 'package:social_media_app_using_firebase/features/home/domain/repos/home_repo.dart';
 import 'package:social_media_app_using_firebase/features/profile/domain/repos/profile_repo.dart';
 
-
 @Injectable(as: HomeRepo)
 class FirebaseHomeRepo implements HomeRepo {
   final FirebaseFirestore firebaseFirestore;
-
-  // Use interfaces instead of concrete classes for better decoupling
   final ProfileRepo profileRepo;
   final AuthRepo authRepo;
 
@@ -21,7 +19,6 @@ class FirebaseHomeRepo implements HomeRepo {
     required this.authRepo,
   });
 
-  // Helper for collection reference
   CollectionReference get postCollection =>
       firebaseFirestore.collection('posts');
 
@@ -32,27 +29,35 @@ class FirebaseHomeRepo implements HomeRepo {
           .orderBy('timeStamp', descending: true)
           .get();
 
-      final List<Post> allPosts = postsSnapshot.docs
+      final List<Post> allPostsSnapshot = postsSnapshot.docs
           .map((doc) => Post.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
 
       final currentUser = await authRepo.getCurrentUser();
 
       if (currentUser == null) {
+        dev.log("FirebaseHomeRepo: currentUser is null");
         return [];
       }
 
       final followings = await profileRepo.fetchFollowings(
         uid: currentUser.uid,
       );
+      
+      final followingList = followings?.following ?? [];
+      dev.log("FirebaseHomeRepo: User ${currentUser.uid} follows ${followingList.length} users: $followingList");
 
-      final List<Post> followingPosts = allPosts.where((post) {
-        return post.userId == currentUser.uid ||
-            (followings?.following.contains(post.userId) ?? false);
+      final List<Post> filteredPosts = allPostsSnapshot.where((post) {
+        final bool isMine = post.userId == currentUser.uid;
+        final bool isFollowing = followingList.contains(post.userId);
+        return isMine || isFollowing;
       }).toList();
 
-      return followingPosts;
+      dev.log("FirebaseHomeRepo: All posts: ${allPostsSnapshot.length}, Filtered posts: ${filteredPosts.length}");
+
+      return filteredPosts;
     } catch (e) {
+      dev.log("FirebaseHomeRepo Error: ${e.toString()}");
       throw Exception("Error fetching posts: ${e.toString()}");
     }
   }

@@ -11,6 +11,7 @@ import 'package:social_media_app_using_firebase/features/profile/presentation/cu
 import 'package:social_media_app_using_firebase/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:social_media_app_using_firebase/features/profile/presentation/pages/follower_page.dart';
 import 'package:social_media_app_using_firebase/features/profile/presentation/pages/following_page.dart';
+import 'package:social_media_app_using_firebase/features/profile/presentation/widgets/profile_app_bar.dart';
 import 'package:social_media_app_using_firebase/features/profile/presentation/widgets/profile_post_widget.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -62,29 +63,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const AppText(text: 'Logout'),
-        content: const AppText(text: 'Are you sure you want to logout?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const AppText(text: 'Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.read<AuthCubit>().logout();
-            },
-            child: AppText(text: 'Logout', color: Colors.red),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -103,19 +81,7 @@ class _ProfilePageState extends State<ProfilePage> {
           final bio = user.bio == '' ? 'no bio yet...' : user.bio;
 
           return Scaffold(
-            appBar: AppBar(
-              title: AppText(text: user.username),
-              foregroundColor: Theme.of(context).colorScheme.primary,
-              actions: [
-                // Show logout button only on own profile
-                if (context.read<AuthCubit>().currentUser!.uid == widget.uid)
-                  IconButton(
-                    icon: const Icon(Icons.logout),
-                    tooltip: 'Logout',
-                    onPressed: () => _showLogoutDialog(context),
-                  ),
-              ],
-            ),
+            appBar: ProfileAppBar(),
             body: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: Column(
@@ -128,7 +94,6 @@ class _ProfilePageState extends State<ProfilePage> {
                     children: [
                       // profile pic
                       picWidget(size, user.profileImage),
-
                       // followers
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,9 +159,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       SizedBox(height: size.height * 0.03),
                       Row(
                         children: [
-                          context.read<AuthCubit>().currentUser!.uid ==
-                                  widget.uid
-                              ? SizedBox(
+                          SizedBox(
                                   width: size.width * 0.45,
                                   child: AppButton(
                                     text: 'Edit Profile',
@@ -210,17 +173,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                       );
                                     },
                                   ),
-                                )
-                              : SizedBox(
-                                  width: size.width * 0.45,
-                                  child: AppButton(
-                                    onTap: () =>
-                                        toggleFollow(state.isFollowing),
-                                    text: state.isFollowing
-                                        ? "Unfollow"
-                                        : "Follow",
-                                  ),
                                 ),
+                             
                           SizedBox(width: size.width * 0.01),
 
                           SizedBox(
@@ -236,11 +190,15 @@ class _ProfilePageState extends State<ProfilePage> {
 
                       SizedBox(height: size.height * 0.05),
 
-                      BlocBuilder<PostCubit, PostState>(
+                      BlocBuilder<HomeCubit, HomeState>(
+                        bloc: BlocProvider.of<HomeCubit>(context)
+                          ..doEvent(
+                            FetchAllPostByUserIdEvent(userId: widget.uid),
+                          ),
                         builder: (context, state) {
-                          if (state is PostLoading) {
+                          if (state is HomeLoading) {
                             return const Center();
-                          } else if (state is PostLoaded) {
+                          } else if (state is HomeLoaded) {
                             final userPosts = state.posts;
                             return GridView.builder(
                               itemCount: userPosts.length,
@@ -258,7 +216,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 );
                               },
                             );
-                          } else if (state is PostError) {
+                          } else if (state is HomeError) {
                             return Center(
                               child: AppText(text: state.errorMessage),
                             );

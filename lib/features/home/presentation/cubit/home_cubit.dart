@@ -36,7 +36,6 @@ class HomeCubit extends Cubit<HomeState> {
   // fetch all posts
   Future<void> _fetchAllPosts() async {
     try {
-      if (loaded) return;
       emit(HomeLoading());
       final posts = await homeRepo.fectchAllPosts();
       emit(HomeLoaded(posts: posts));

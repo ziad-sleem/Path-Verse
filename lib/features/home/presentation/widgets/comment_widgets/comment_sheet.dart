@@ -7,7 +7,10 @@ import 'package:social_media_app_using_firebase/features/auth/peresnetation/cubi
 import 'package:social_media_app_using_firebase/features/create_post/domain/entities/comment.dart';
 import 'package:social_media_app_using_firebase/features/create_post/domain/entities/post.dart';
 import 'package:social_media_app_using_firebase/features/create_post/presentation/cubit/post_cubit.dart';
+import 'package:social_media_app_using_firebase/features/home/presentation/cubit/home_cubit.dart';
+import 'package:social_media_app_using_firebase/features/home/presentation/cubit/home_event.dart';
 import 'package:social_media_app_using_firebase/features/profile/presentation/cubits/cubit/profile_cubit.dart';
+import 'package:social_media_app_using_firebase/features/profile/presentation/pages/other_user_profile_page.dart';
 import 'package:social_media_app_using_firebase/features/profile/presentation/pages/profile_page.dart';
 
 class CommentSheet extends StatefulWidget {
@@ -36,7 +39,9 @@ class _CommentSheetState extends State<CommentSheet> {
         timestamp: DateTime.now(),
       );
 
-      context.read<PostCubit>().addComment(widget.post.id, newComment);
+      context.read<HomeCubit>().doEvent(
+        AddCommentEvent(postId: widget.post.id, comment: newComment),
+      );
       _commentController.clear();
     }
   }
@@ -146,7 +151,9 @@ class _CommentSheetState extends State<CommentSheet> {
             ),
             TextButton(
               onPressed: () {
-                context.read<PostCubit>().deleteComment(postId, comment);
+                context.read<HomeCubit>().doEvent(
+                  DeleteCommentEvent(postId: widget.post.id, comment: comment),
+                );
                 Navigator.pop(context);
               },
               child: const AppText(text: 'Delete', color: AppColors.myRed),
@@ -243,13 +250,25 @@ class _CommentSheetState extends State<CommentSheet> {
                               // comment avatrar
                               GestureDetector(
                                 onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          ProfilePage(uid: comment.userId),
-                                    ),
-                                  );
+                                  context.read<AuthCubit>().currentUser!.uid ==
+                                          comment.userId
+                                      ? Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => ProfilePage(
+                                              uid: comment.userId,
+                                            ),
+                                          ),
+                                        )
+                                      : Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                OtherUserProfilePage(
+                                                  uid: comment.userId,
+                                                ),
+                                          ),
+                                        );
                                 },
                                 child: _CommentUserAvatar(
                                   userId: comment.userId,

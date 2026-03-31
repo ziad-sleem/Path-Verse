@@ -2,9 +2,16 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:social_media_app_using_firebase/config/DI/injection.dart';
 import 'package:social_media_app_using_firebase/core/widgets/app_text.dart';
+import 'package:social_media_app_using_firebase/features/auth/peresnetation/cubits/auth_cubit/auth_cubit.dart';
+import 'package:social_media_app_using_firebase/features/home/presentation/cubit/home_cubit.dart';
+import 'package:social_media_app_using_firebase/features/home/presentation/cubit/home_event.dart';
+import 'package:social_media_app_using_firebase/features/profile/presentation/cubits/cubit/profile_cubit.dart';
+import 'package:social_media_app_using_firebase/features/profile/presentation/pages/other_user_profile_page.dart';
 import 'package:social_media_app_using_firebase/features/profile/presentation/pages/profile_page.dart';
 import 'package:social_media_app_using_firebase/features/search/presentation/bloc/search_bloc.dart';
+import 'package:social_media_app_using_firebase/features/search/presentation/widgets/search_app_bar.dart';
 import 'package:social_media_app_using_firebase/features/search/presentation/widgets/search_text_field.dart';
 
 class SearchPage extends StatefulWidget {
@@ -35,7 +42,7 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const AppText(text: 'Search')),
+      appBar: SearchAppBar(),
       body: Column(
         children: [
           // Search input
@@ -61,6 +68,7 @@ class _SearchPageState extends State<SearchPage> {
                     itemCount: state.results.length,
                     itemBuilder: (context, index) {
                       final user = state.results[index];
+                      final currentUser = context.read<AuthCubit>().currentUser;
 
                       return ListTile(
                         leading: CircleAvatar(
@@ -117,12 +125,37 @@ class _SearchPageState extends State<SearchPage> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProfilePage(uid: user.uid),
-                            ),
-                          );
+                          if (currentUser?.uid == user.uid) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ProfilePage(uid: user.uid),
+                              ),
+                            );
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MultiBlocProvider(
+                                  providers: [
+                                    BlocProvider(
+                                      create: (context) => getIt<ProfileCubit>()
+                                        ..fetchUserProfile(user.uid),
+                                    ),
+                                    BlocProvider(
+                                      create: (context) => getIt<HomeCubit>()
+                                        ..doEvent(
+                                          FetchAllPostByUserIdEvent(
+                                            userId: user.uid,
+                                          ),
+                                        ),
+                                    ),
+                                  ],
+                                  child: OtherUserProfilePage(uid: user.uid),
+                                ),
+                              ),
+                            );
+                          }
                         },
                       );
                     },

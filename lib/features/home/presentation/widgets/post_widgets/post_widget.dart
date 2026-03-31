@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_media_app_using_firebase/core/widgets/app_text.dart';
-import 'package:social_media_app_using_firebase/features/auth/domain/entities/app_user.dart';
 import 'package:social_media_app_using_firebase/features/auth/peresnetation/cubits/auth_cubit/auth_cubit.dart';
+import 'package:social_media_app_using_firebase/features/create_post/domain/entities/post.dart';
 import 'package:social_media_app_using_firebase/features/home/presentation/cubit/home_cubit.dart';
 import 'package:social_media_app_using_firebase/features/home/presentation/cubit/home_event.dart';
+import 'package:social_media_app_using_firebase/features/home/presentation/widgets/comment_widgets/comment_sheet.dart';
 import 'package:social_media_app_using_firebase/features/home/presentation/widgets/post_widgets/post_actions.dart';
 import 'package:social_media_app_using_firebase/features/home/presentation/widgets/post_widgets/post_caption.dart';
-import 'package:social_media_app_using_firebase/features/home/presentation/widgets/post_widgets/post_comment_count.dart';
+import 'package:social_media_app_using_firebase/features/home/presentation/widgets/comment_widgets/post_comment_count.dart';
 import 'package:social_media_app_using_firebase/features/home/presentation/widgets/post_widgets/post_image.dart';
 import 'package:social_media_app_using_firebase/features/home/presentation/widgets/post_widgets/post_time_stamp.dart';
 import 'package:social_media_app_using_firebase/features/home/presentation/widgets/post_widgets/post_user_info.dart';
-import 'package:social_media_app_using_firebase/features/create_post/domain/entities/post.dart';
-import 'package:social_media_app_using_firebase/features/create_post/presentation/cubit/post_cubit.dart';
-import 'package:social_media_app_using_firebase/features/home/presentation/widgets/comment_widgets/comment_sheet.dart';
-import 'package:social_media_app_using_firebase/features/profile/presentation/cubits/cubit/profile_cubit.dart';
 import 'package:social_media_app_using_firebase/features/profile/domain/models/profile_user.dart';
+import 'package:social_media_app_using_firebase/features/profile/presentation/cubits/cubit/profile_cubit.dart';
 
 class PostWidget extends StatefulWidget {
   final Post post;
@@ -70,16 +68,17 @@ class _PostWidgetState extends State<PostWidget> {
     });
 
     // update like
-    await context
-        .read<HomeCubit>().doEvent(ToggleLikePostEvent(postId: postId, userId: user.uid)).catchError((error) {
-          setState(() {
-            if (isLiked) {
-              widget.post.likes.add(user.uid);
-            } else {
-              widget.post.likes.remove(user.uid);
-            }
-          });
-        });
+    try {
+      context.read<HomeCubit>().doEvent(ToggleLikePostEvent(postId: postId, userId: user.uid));
+    } catch (error) {
+      setState(() {
+        if (isLiked) {
+          widget.post.likes.add(user.uid);
+        } else {
+          widget.post.likes.remove(user.uid);
+        }
+      });
+    }
   }
 
   // comment process

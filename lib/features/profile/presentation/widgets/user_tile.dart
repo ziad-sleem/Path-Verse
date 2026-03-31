@@ -1,9 +1,14 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:social_media_app_using_firebase/config/DI/injection.dart';
 import 'package:social_media_app_using_firebase/core/widgets/app_text.dart';
 import 'package:social_media_app_using_firebase/features/auth/domain/entities/app_user.dart';
+import 'package:social_media_app_using_firebase/features/auth/peresnetation/cubits/auth_cubit/auth_cubit.dart';
+import 'package:social_media_app_using_firebase/features/home/presentation/cubit/home_cubit.dart';
+import 'package:social_media_app_using_firebase/features/home/presentation/cubit/home_event.dart';
 import 'package:social_media_app_using_firebase/features/profile/presentation/cubits/cubit/profile_cubit.dart';
+import 'package:social_media_app_using_firebase/features/profile/presentation/pages/other_user_profile_page.dart';
 import 'package:social_media_app_using_firebase/features/profile/presentation/pages/profile_page.dart';
 
 class UserTile extends StatelessWidget {
@@ -24,12 +29,33 @@ class UserTile extends StatelessWidget {
               color: Theme.of(context).colorScheme.primary,
             ),
             leading: _buildProfileImage(context, user),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProfilePage(uid: user.uid),
-              ),
-            ),
+            onTap: () {
+              final currentUser = context.read<AuthCubit>().currentUser;
+              if (currentUser != null && currentUser.uid == user.uid) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ProfilePage(uid: user.uid)),
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MultiBlocProvider(
+                      providers: [
+                        BlocProvider(
+                          create: (context) => getIt<ProfileCubit>()..fetchUserProfile(user.uid),
+                        ),
+                        BlocProvider(
+                          create: (context) => getIt<HomeCubit>()
+                            ..doEvent(FetchAllPostByUserIdEvent(userId: user.uid)),
+                        ),
+                      ],
+                      child: OtherUserProfilePage(uid: user.uid),
+                    ),
+                  ),
+                );
+              }
+            },
           );
         } else if (snapshot.connectionState == ConnectionState.waiting) {
           return const ListTile(title: Text("Loading..."));
